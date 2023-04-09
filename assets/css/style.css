@@ -454,7 +454,19 @@ body {
   box-shadow: none;
 }
 
+.search-result-item {
+  display: table;
+  width: 100%;
+}
+.item-text {
+  display: table-cell;
+  width: 90%; /* adjust */
+}
 
+.fav-location-btn {
+  display: table-cell;
+  width: 10%; /* adjust */
+}
 
 .add-fav {
   display: inline-block;

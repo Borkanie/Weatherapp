@@ -22,17 +22,28 @@ const addEventOnElements = function (elements, eventType, callback) {
 /**
  * Toggle search in mobile devices
  */
+const favButtonImageNotAddedPath = "./assets/images/btn-no-added.svg";
+const favButtonImagePath = "./assets/images/btn-favorite.svg";
+
 let favoriteLocationsList = [];
-const favbutton = document.getElementById("[fav-location-button]");
+function AddFavoriteToList(name,myImage) {
+  
+  const index = favoriteLocationsList.indexOf(name);
+
+  if (index !== -1) {
+    favoriteLocationsList.splice(index, 1);
+    myImage.setAttribute("src",favButtonImageNotAddedPath);
+  }else{
+    favoriteLocationsList.push(name);
+    myImage.setAttribute("src",favButtonImagePath);
+  }
+  
+};
+
+//const favbutton = document.getElementById("[fav-location-button]");
 const searchView = document.querySelector("[data-search-view]");
 const searchTogglers = document.querySelectorAll("[data-search-toggler]");
 
-favbutton.onclick = function(){
-  if(!favoriteLocationsList.includes(searchField) ){
-    favoriteLocationsList.add(searchField);
-    favbutton.visibility= false;
-  }
-};
 const toggleSearch = () => searchView.classList.toggle("active");
 addEventOnElements(searchTogglers, "click", toggleSearch);
 
@@ -59,26 +70,6 @@ searchField.addEventListener("input", function () {
 
   if (searchField.value) {
     searchTimeout = setTimeout(() => {
-      for(const fav in favoriteLocationsList){
-        const searchItem = document.createElement("li");
-        searchItem.classList.add("view-item");
-
-        searchItem.innerHTML = `
-          <span class="m-icon">location_on</span>
-
-          <div>
-            <p class="item-title">${fav}</p>
-
-            <p class="label-2 item-subtitle">${fav || ""} ${fav}</p>
-          </div>
-
-          <a href="#/weather?lat=0&lon=0" class="item-link has-state" aria-label="${fav} weather" data-search-toggler></a>
-        `;
-
-        searchResult.querySelector("[data-search-list]").appendChild(searchItem);
-        items.push(searchItem.querySelector("[data-search-toggler]"));
-      
-      }
       fetchData(url.geo(searchField.value), function (locations) {
         searchField.classList.remove("searching");
         searchResult.classList.add("active");
@@ -94,24 +85,51 @@ searchField.addEventListener("input", function () {
 
           searchItem.innerHTML = `
             <span class="m-icon">location_on</span>
+            <div class="search-result-item">
+              <div class="item-text">
+                <p class="item-title">${name}</p>
 
-            <div>
-              <p class="item-title">${name}</p>
-
-              <p class="label-2 item-subtitle">${state || ""} ${country}</p>
+                <p class="label-2 item-subtitle">${state || ""} ${country}</p>
+                <a href="#/weather?lat=${lat}&lon=${lon}" class="item-link has-state" aria-label="${name} weather" data-search-toggler></a>
+              </div>
+            <button class="fav-location-btn" id="fav-location-button">
+              <div class="img-container">
+                <img class="search-item-image" src=${favButtonImageNotAddedPath}/>
+              </div>
+            </button>
             </div>
 
-            <a href="#/weather?lat=${lat}&lon=${lon}" class="item-link has-state" aria-label="${name} weather" data-search-toggler></a>
           `;
-
+          let hrefElement = searchItem.getElementsByClassName('item-link has-state')[0];
+          hrefElement.style.display = 'inline-block';
+          hrefElement.style.width = '85%';
+          let favbutton = searchItem.children[1].children[1];
+          searchItem.children[1].children[0].onclick = function () {
+            toggleSearch();
+            searchResult.classList.remove("active");
+          };
+          let myImage = searchItem.getElementsByClassName("search-item-image")[0];
+          myImage.setAttribute("width", "25");
+          myImage.setAttribute("height", "25");
+          myImage.setAttribute("background-color","black");
+          if(favoriteLocationsList.includes(name)){
+            
+            myImage.setAttribute("src",favButtonImagePath);
+          }
+          favbutton.setAttribute("width","25");
+          favbutton.setAttribute("height","25");
+          favbutton.onclick = function (){
+            AddFavoriteToList(name,myImage);
+          }
           searchResult.querySelector("[data-search-list]").appendChild(searchItem);
           items.push(searchItem.querySelector("[data-search-toggler]"));
         }
-
+      /*
         addEventOnElements(items, "click", function () {
           toggleSearch();
           searchResult.classList.remove("active");
-        })
+        })*/
+        
       });
     }, serachTimeoutDuration);
   }
