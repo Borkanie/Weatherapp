@@ -25,16 +25,96 @@ const addEventOnElements = function (elements, eventType, callback) {
 const favButtonImageNotAddedPath = "./assets/images/btn-no-added.svg";
 const favButtonImagePath = "./assets/images/btn-favorite.svg";
 
-let favoriteLocationsList = [];
-function AddFavoriteToList(name,myImage) {
+const favListButton = document.getElementsByClassName("btn-list-favorites");
+
+function createSearchViewResults(locations) {
+  searchResult.innerHTML = `
+    <ul class="view-list" data-search-list></ul>
+  `;
+
+  const /** {NodeList} | [] */ items = [];
   
-  const index = favoriteLocationsList.indexOf(name);
+  for (const { name, lat, lon, country, state } of locations) {
+    const searchItem = document.createElement("li");
+    searchItem.classList.add("view-item");
+    searchItem.innerHTML = `
+      <span class="m-icon">location_on</span>
+      <div class="search-result-item">
+        <div class="item-text">
+          <p class="item-title">${name}</p>
+
+          <p class="label-2 item-subtitle">${state || ""} ${country}</p>
+          <a href="#/weather?lat=${lat}&lon=${lon}" class="item-link has-state" aria-label="${name} weather" data-search-toggler></a>
+        </div>
+      <button class="fav-location-btn" id="fav-location-button">
+        <div class="img-container">
+          <img class="search-item-image" src=${favButtonImageNotAddedPath}/>
+        </div>
+      </button>
+      </div>
+
+    `;
+    let hrefElement = searchItem.getElementsByClassName('item-link has-state')[0];
+    hrefElement.style.display = 'inline-block';
+    hrefElement.style.width = '85%';
+    let favbutton = searchItem.children[1].children[1];
+    searchItem.children[1].children[0].onclick = function () {
+      toggleSearch();
+      searchResult.classList.remove("active");
+    };
+    let myImage = searchItem.getElementsByClassName("search-item-image")[0];
+    myImage.setAttribute("width", "25");
+    myImage.setAttribute("height", "25");
+    myImage.setAttribute("background-color","black");
+    if(GetIndexOfLocationByName( name, lat, lon, country, state ,favoriteLocationsList)!=-1){
+      myImage.setAttribute("src",favButtonImagePath);
+    }
+    favbutton.setAttribute("width","25");
+    favbutton.setAttribute("height","25");
+    favbutton.onclick = function (){
+      AddFavoriteToList(name, lat, lon, country, state, myImage);
+    }
+    searchResult.querySelector("[data-search-list]").appendChild(searchItem);
+    items.push(searchItem.querySelector("[data-search-toggler]"));
+  }
+}
+
+addEventOnElements(favListButton,"click",function (){
+  searchTimeout ?? clearTimeout(searchTimeout);
+
+  if (!searchField.value) {
+    searchResult.classList.remove("active");
+    searchResult.innerHTML = "";
+    searchField.classList.remove("searching");
+  } else {
+    searchField.classList.add("searching");
+  }
+  toggleSearch();
+  createSearchViewResults(favoriteLocationsList);
+});
+
+let favoriteLocationsList = [];
+
+function GetIndexOfLocationByName(searchedName,searchedLat, searchedLLon, searchedLCountry, searchedLState, locations){
+  let index = 0;
+  for (const { name, lat, lon, country, state } of locations){
+      if(searchedName == name && lat == searchedLat && lon==searchedLLon && country==searchedLCountry && state==searchedLState ){
+        return index;
+      }
+      index++;
+  }
+  return -1;
+}
+
+function AddFavoriteToList(name, lat, lon, country, state ,myImage) {
+  
+  const index = GetIndexOfLocationByName(name, lat, lon, country, state ,favoriteLocationsList);
 
   if (index !== -1) {
     favoriteLocationsList.splice(index, 1);
     myImage.setAttribute("src",favButtonImageNotAddedPath);
   }else{
-    favoriteLocationsList.push(name);
+    favoriteLocationsList.push({ name, lat, lon, country, state });
     myImage.setAttribute("src",favButtonImagePath);
   }
   
@@ -71,66 +151,8 @@ searchField.addEventListener("input", function () {
   if (searchField.value) {
     searchTimeout = setTimeout(() => {
       fetchData(url.geo(searchField.value), function (locations) {
-        searchField.classList.remove("searching");
-        searchResult.classList.add("active");
-        searchResult.innerHTML = `
-          <ul class="view-list" data-search-list></ul>
-        `;
-
-        const /** {NodeList} | [] */ items = [];
-        
-        for (const { name, lat, lon, country, state } of locations) {
-          const searchItem = document.createElement("li");
-          searchItem.classList.add("view-item");
-
-          searchItem.innerHTML = `
-            <span class="m-icon">location_on</span>
-            <div class="search-result-item">
-              <div class="item-text">
-                <p class="item-title">${name}</p>
-
-                <p class="label-2 item-subtitle">${state || ""} ${country}</p>
-                <a href="#/weather?lat=${lat}&lon=${lon}" class="item-link has-state" aria-label="${name} weather" data-search-toggler></a>
-              </div>
-            <button class="fav-location-btn" id="fav-location-button">
-              <div class="img-container">
-                <img class="search-item-image" src=${favButtonImageNotAddedPath}/>
-              </div>
-            </button>
-            </div>
-
-          `;
-          let hrefElement = searchItem.getElementsByClassName('item-link has-state')[0];
-          hrefElement.style.display = 'inline-block';
-          hrefElement.style.width = '85%';
-          let favbutton = searchItem.children[1].children[1];
-          searchItem.children[1].children[0].onclick = function () {
-            toggleSearch();
-            searchResult.classList.remove("active");
-          };
-          let myImage = searchItem.getElementsByClassName("search-item-image")[0];
-          myImage.setAttribute("width", "25");
-          myImage.setAttribute("height", "25");
-          myImage.setAttribute("background-color","black");
-          if(favoriteLocationsList.includes(name)){
-            
-            myImage.setAttribute("src",favButtonImagePath);
-          }
-          favbutton.setAttribute("width","25");
-          favbutton.setAttribute("height","25");
-          favbutton.onclick = function (){
-            AddFavoriteToList(name,myImage);
-          }
-          searchResult.querySelector("[data-search-list]").appendChild(searchItem);
-          items.push(searchItem.querySelector("[data-search-toggler]"));
-        }
-      /*
-        addEventOnElements(items, "click", function () {
-          toggleSearch();
-          searchResult.classList.remove("active");
-        })*/
-        
-      });
+        createSearchViewResults(locations)
+        });
     }, serachTimeoutDuration);
   }
 
@@ -141,6 +163,7 @@ const container = document.querySelector("[data-container]");
 const loading = document.querySelector("[data-loading]");
 const currentLocationBtn = document.querySelector("[data-current-location-btn]");
 const errorContent = document.querySelector("[data-error-content]");
+
 
 /**
  * Render all weather data in html page
