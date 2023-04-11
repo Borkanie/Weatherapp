@@ -212,6 +212,38 @@ export const updateWeather = function (lat, lon) {
     const card = document.createElement("div");
     card.classList.add("card", "card-lg", "current-weather-card");
 
+    if(description.includes("clouds")){
+      document.body.style.backgroundImage = "url('./assets/images/background/cloudy.gif')";
+      document.body.style.backgroundRepeat = "no-repeat";
+      document.body.style.backgroundPosition = "center center";
+      document.body.style.backgroundSize = "cover";
+    }
+    if(description.includes("rain")){
+      document.body.style.backgroundImage = "url('./assets/images/background/rain.gif')";
+      document.body.style.backgroundRepeat = "no-repeat";
+      document.body.style.backgroundPosition = "center center";
+      document.body.style.backgroundSize = "cover";
+    }
+    if(description.includes("storm")){
+      document.body.style.backgroundImage = "url('./assets/images/background/storm.gif')";
+      document.body.style.backgroundRepeat = "no-repeat";
+      document.body.style.backgroundPosition = "center center";
+      document.body.style.backgroundSize = "cover";
+    }
+    if(description.includes("scattered clouds") || description.includes("clear sky")){
+      document.body.style.backgroundImage = "url('./assets/images/background/sunny.gif')";
+      document.body.style.backgroundRepeat = "no-repeat";
+      document.body.style.backgroundPosition = "center center";
+      document.body.style.backgroundSize = "cover";
+    }
+    if(description.includes("snow")){
+      document.body.style.backgroundImage = "url('./assets/images/background/snow.gif')";
+      document.body.style.backgroundRepeat = "no-repeat";
+      document.body.style.backgroundPosition = "center center";
+      document.body.style.backgroundSize = "cover";
+    }
+
+
     card.innerHTML = `
       <h2 class="title-2 card-title">Now</h2>
 
